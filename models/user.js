@@ -53,7 +53,6 @@ class User {
         const productIds = this.cart.items.map(i => {
             return i.productId;
         });
-
         return db 
         .collection('products')
         .find({_id: {$in: productIds}})
@@ -69,54 +68,53 @@ class User {
                 });
             });
     }
+      deleteItemFromCart(productId) {
+        const updatedCartItems = this.cart.items.filter(item => {
+            return item.productId.toString() !== productId.toString();
+        });
+        const db = getDb();
+        return db
+         .collection('users')
+         .updateOne(
+             {_id: new ObjectId(this._id)},
+             {$set: {cart: {items: updatedCartItems}}}
+         );
+    }
 
-//  1   // deleteItemFromCart(productId) {
-    //     const updatedCartItems = this.cart.items.filter(item => {
-    //         return item.productId.toString() !== productId.toString();
-    //     });
-    //     const db = getDb();
-    //     return db
-    //      .collection('users')
-    //      .updateOne(
-    //          {_id: new ObjectId(this._id)},
-    //          {$set: {cart: {items: updatedCartItems}}}
-    //      );
-    // }
+ addOrder() {
+        const db = getDb();
+        return this.getCart()
+        .then(products => {
+            const order = {
+                items: products,
+                user: {
+                    _id: new ObjectId(this._id),
+                    name: this.name
+                }
+            };
+            return db
+            .collection('orders')
+            .insertOne(order);
+        })
+        .then(result => {
+            this.cart = {items: []};
+            return db 
+            .collection('users')
+            .updateOne(
+                {_id: new ObjectId(this._id)},
+                {$set: {cart: {items: []}}}
+            );
+        });
+    }
 
-//   2  // addOrder() {
-    //     const db = getDb();
-    //     return this.getCart()
-    //     .then(products => {
-    //         const order = {
-    //             items: products,
-    //             user: {
-    //                 _id: new ObjectId(this._id),
-    //                 name: this.name
-    //             }
-    //         };
-    //         return db
-    //         .collection('orders')
-    //         .insertOne(order);
-    //     })
-    //     .then(result => {
-    //         this.cart = {items: []};
-    //         return db 
-    //         .collection('users')
-    //         .updateOne(
-    //             {_id: new ObjectId(this._id)},
-    //             {$set: {cart: {items: []}}}
-    //         );
-    //     });
-    // }
-
-//   3  // getOrders() {
-    //     const db = getDb();
-    //     return db
-    //     .collection('orders')
-    //     .find({'user._id': new ObjectId(this._id)})
-    //     .toArray();
-    // }
-
+    getOrders() {
+        const db = getDb();
+        return db
+        .collection('orders')
+        .find({'user._id': new ObjectId(this._id)})
+        .toArray();
+    }
+    
     static findByPk(userId) {
         const db = getDb();
         return db
@@ -131,4 +129,5 @@ class User {
         })
     }
 }
+
 module.exports = User;

@@ -74,6 +74,9 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
+  // console.log("......................................................");
+  // console.log(req.user);
+  // console.log("......................................................");
   req.user
   .deleteItemFromCart(prodId)
     .then(result => {
@@ -83,7 +86,6 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  let fetchedCart;
   req.user
   .addOrder()
   .then(result => {
